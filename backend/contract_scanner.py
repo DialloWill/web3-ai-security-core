@@ -1,6 +1,5 @@
 import re
 
-# 🚨 Example: A very simple smart contract vulnerability scanner
 def scan_contract(code):
     vulnerabilities = []
 
@@ -17,28 +16,3 @@ def scan_contract(code):
         vulnerabilities.append("No SafeMath library found — Risk of overflow/underflow.")
 
     return vulnerabilities
-
-
-# 🔬 Test code (you can remove or replace this)
-if __name__ == "__main__":
-    sample_code = """
-    pragma solidity ^0.8.0;
-
-    contract Vulnerable {
-        address public owner;
-
-        constructor() {
-            owner = msg.sender;
-        }
-
-        function withdraw() public {
-            require(tx.origin == owner);
-            payable(msg.sender).send(address(this).balance);
-        }
-    }
-    """
-
-    issues = scan_contract(sample_code)
-    print("Issues found:")
-    for issue in issues:
-        print("-", issue)
