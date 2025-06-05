@@ -1,22 +1,21 @@
-from flask import Flask, request, jsonify
-from contract_scanner import scan_contract
+from flask import request
+from web3 import Web3
 
-app = Flask(__name__)
+# Connect to Infura (or another Ethereum provider)
+w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID'))  # Replace this
 
-@app.route('/')
-def home():
-    return "Welcome to the Web3 AI Security Core API! Use the /scan endpoint to POST your smart contract code for analysis."
-
-@app.route("/scan", methods=["POST"])
-def scan():
+@app.route('/scan/address', methods=['POST'])
+def scan_contract_address():
     data = request.get_json()
-    code = data.get("code", "")
+    address = data.get('address')
+    if not address or not w3.isAddress(address):
+        return jsonify({"error": "Invalid or missing Ethereum address"}), 400
 
-    if not code:
-        return jsonify({"error": "No smart contract code provided."}), 400
+    try:
+        contract = w3.eth.get_code(Web3.toChecksumAddress(address)).hex()
+        if contract == "0x":
+            return jsonify({"error": "No contract found at this address"}), 404
 
-    results = scan_contract(code)
-    return jsonify({"issues": results})
-
-if __name__ == "__main__":
-    app.run(debug=True)
+        return jsonify({"issues": ["Smart contract bytecode found. Source code analysis not available via bytecode."]})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
