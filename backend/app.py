@@ -1,21 +1,54 @@
-from flask import request
+from flask import Flask, request, jsonify
+from contract_scanner import scan_contract_logic
+from ai_auditor import explain_issues_with_gpt
+from dotenv import load_dotenv
 from web3 import Web3
+import os
 
-# Connect to Infura (or another Ethereum provider)
-w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID'))  # Replace this
+app = Flask(__name__)
+load_dotenv()  # Load .env file
 
+# Connect to Infura or any Ethereum provider (update YOUR_INFURA_PROJECT_ID)
+w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID'))
+
+@app.route('/')
+def home():
+    return "Welcome to the Web3 AI Security Core API! Use /scan or /scan/address."
+
+# ✅ /scan: AI-powered vulnerability + GPT explanation
+@app.route('/scan', methods=['POST'])
+def scan_contract():
+    data = request.get_json()
+    code = data.get("code")
+
+    if not code:
+        return jsonify({"error": "No code provided"}), 400
+
+    result = scan_contract_logic(code)
+    ai_feedback = explain_issues_with_gpt(result["issues"], code)
+
+    return jsonify({
+        "issues": result["issues"],
+        "ai_audit": ai_feedback["explanations"]
+    })
+
+# 🧪 /scan/address (will use Web3 to pull verified contract code — in progress)
 @app.route('/scan/address', methods=['POST'])
 def scan_contract_address():
     data = request.get_json()
     address = data.get('address')
+
     if not address or not w3.isAddress(address):
         return jsonify({"error": "Invalid or missing Ethereum address"}), 400
 
     try:
-        contract = w3.eth.get_code(Web3.toChecksumAddress(address)).hex()
-        if contract == "0x":
+        bytecode = w3.eth.get_code(Web3.toChecksumAddress(address)).hex()
+        if bytecode == "0x":
             return jsonify({"error": "No contract found at this address"}), 404
 
         return jsonify({"issues": ["Smart contract bytecode found. Source code analysis not available via bytecode."]})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
