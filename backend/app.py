@@ -61,3 +61,4 @@ def scan_contract_address():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
