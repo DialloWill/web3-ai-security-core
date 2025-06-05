@@ -13,7 +13,7 @@ w3 = Web3(Web3.HTTPProvider(os.getenv("WEB3_PROVIDER_URL")))
 
 @app.route('/')
 def home():
-    return "Welcome to the Web3 AI Security Core API! Use /scan or /scan/address."
+    return "Welcome to the Web3 AI Security Core API! Use /scan or /scan/address"
 
 # ✅ /scan: AI-powered vulnerability + GPT explanation
 @app.route('/scan', methods=['POST'])
