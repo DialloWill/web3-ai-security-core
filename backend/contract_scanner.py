@@ -1,18 +1,19 @@
 import re
 
 def scan_contract(code):
-    vulnerabilities = []
+    issues = []
 
-    # Detect reentrancy pattern (simplified)
-    if "call.value" in code or "send(" in code:
-        vulnerabilities.append("Possible Reentrancy Attack Detected.")
+    # Pattern 1: tx.origin (already implemented)
+    if re.search(r'\btx\.origin\b', code):
+        issues.append("Use of tx.origin for authentication is insecure.")
 
-    # Detect use of tx.origin
-    if "tx.origin" in code:
-        vulnerabilities.append("Use of tx.origin for authentication is insecure.")
+    # Pattern 2: Reentrancy
+    if re.search(r'\.call\{?value:', code) or re.search(r'\.call\.value\(', code):
+        issues.append("Potential reentrancy vulnerability detected (use of call.value or .call{value}).")
 
-    # Detect integer overflows (basic check)
-    if "SafeMath" not in code and ("+" in code or "-" in code):
-        vulnerabilities.append("No SafeMath library found — Risk of overflow/underflow.")
+    # Pattern 3: Unchecked math (only flag if Solidity <0.8.0)
+    if re.search(r'pragma solidity\s+<\s*0\.8', code):
+        if re.search(r'\b(\w+)\s*[\+\-\*]\s*(\w+)\b', code):
+            issues.append("Unchecked arithmetic operations found (consider using SafeMath).")
 
-    return vulnerabilities
+    return {"issues": issues}
