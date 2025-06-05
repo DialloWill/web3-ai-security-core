@@ -38,7 +38,7 @@ def scan_contract_address():
     data = request.get_json()
     address = data.get('address')
 
-    if not address or not Web3.isAddress(address):
+    if not address or not w3.isAddress(address):
         return jsonify({"error": "Invalid or missing Ethereum address"}), 400
 
     try:
@@ -57,4 +57,4 @@ def scan_contract_address():
 
 if __name__ == '__main__':
     app.run(debug=True)
-    
+ 
