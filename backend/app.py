@@ -5,20 +5,14 @@ from dotenv import load_dotenv
 from web3 import Web3
 import os
 
-print("Starting Flask app...")
+app = Flask(__name__)
 load_dotenv()  # Load .env file
 
-WEB3_URL = os.getenv("WEB3_PROVIDER_URL")
-print("WEB3_PROVIDER_URL =", WEB3_URL)
-
-app = Flask(__name__)
-
 # Connect to Ethereum provider (e.g., Infura) from .env
-w3 = Web3(Web3.HTTPProvider(WEB3_URL))
+w3 = Web3(Web3.HTTPProvider(os.getenv("WEB3_PROVIDER_URL")))
 
 @app.route('/')
 def home():
-    print("Home route accessed")
     return "Welcome to the Web3 AI Security Core API! Use /scan or /scan/address."
 
 # ✅ /scan: AI-powered vulnerability + GPT explanation
@@ -66,6 +60,4 @@ def scan_contract_address():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    print("Registered routes:")
-    print(app.url_map)
     app.run(debug=True)
