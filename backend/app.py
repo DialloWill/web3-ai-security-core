@@ -18,7 +18,9 @@ def home():
 # ✅ /scan: AI-powered vulnerability + GPT explanation
 @app.route('/scan', methods=['POST'])
 def scan_contract():
+    print("Received request at /scan")
     data = request.get_json()
+    print("Request JSON data:", data)
     code = data.get("code")
 
     if not code:
@@ -35,7 +37,9 @@ def scan_contract():
 # 🧪 /scan/address: Pull on-chain bytecode by address
 @app.route('/scan/address', methods=['POST'])
 def scan_contract_address():
+    print("Received request at /scan/address")
     data = request.get_json()
+    print("Request JSON data:", data)
     address = data.get('address')
 
     if not address or not w3.isAddress(address):
@@ -57,4 +61,3 @@ def scan_contract_address():
 
 if __name__ == '__main__':
     app.run(debug=True)
- 
