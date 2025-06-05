@@ -8,8 +8,8 @@ import os
 app = Flask(__name__)
 load_dotenv()  # Load .env file
 
-# Connect to Infura or any Ethereum provider (update YOUR_INFURA_PROJECT_ID)
-w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID'))
+# Connect to Infura or any Ethereum provider via .env
+w3 = Web3(Web3.HTTPProvider(os.getenv("WEB3_PROVIDER_URL")))
 
 @app.route('/')
 def home():
@@ -32,23 +32,29 @@ def scan_contract():
         "ai_audit": ai_feedback["explanations"]
     })
 
-# 🧪 /scan/address (will use Web3 to pull verified contract code — in progress)
+# 🧪 /scan/address: Pull on-chain bytecode by address
 @app.route('/scan/address', methods=['POST'])
 def scan_contract_address():
     data = request.get_json()
     address = data.get('address')
 
-    if not address or not w3.isAddress(address):
+    if not address or not Web3.isAddress(address):
         return jsonify({"error": "Invalid or missing Ethereum address"}), 400
 
     try:
-        bytecode = w3.eth.get_code(Web3.toChecksumAddress(address)).hex()
+        checksum_address = Web3.toChecksumAddress(address)
+        bytecode = w3.eth.get_code(checksum_address).hex()
+
         if bytecode == "0x":
             return jsonify({"error": "No contract found at this address"}), 404
 
-        return jsonify({"issues": ["Smart contract bytecode found. Source code analysis not available via bytecode."]})
+        return jsonify({
+            "bytecode": bytecode,
+            "issues": ["Smart contract bytecode found. Source code analysis not available via bytecode."]
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
+    
