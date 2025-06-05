@@ -8,7 +8,7 @@ import os
 app = Flask(__name__)
 load_dotenv()  # Load .env file
 
-# Connect to Infura or any Ethereum provider via .env
+# Connect to Ethereum provider (e.g., Infura) from .env
 w3 = Web3(Web3.HTTPProvider(os.getenv("WEB3_PROVIDER_URL")))
 
 @app.route('/')
@@ -34,7 +34,7 @@ def scan_contract():
         "ai_audit": ai_feedback["explanations"]
     })
 
-# 🧪 /scan/address: Pull on-chain bytecode by address
+# ✅ /scan/address: Pull on-chain bytecode by address
 @app.route('/scan/address', methods=['POST'])
 def scan_contract_address():
     print("Received request at /scan/address")
@@ -42,7 +42,7 @@ def scan_contract_address():
     print("Request JSON data:", data)
     address = data.get('address')
 
-    if not address or not w3.isAddress(address):
+    if not address or not Web3.isAddress(address):
         return jsonify({"error": "Invalid or missing Ethereum address"}), 400
 
     try:
