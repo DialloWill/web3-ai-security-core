@@ -6,16 +6,16 @@ from web3 import Web3
 import os
 
 app = Flask(__name__)
-load_dotenv()  # Load .env file
+load_dotenv()  # Load environment variables from .env
 
-# Connect to Ethereum provider (e.g., Infura) from .env
+# Connect to Ethereum node (e.g., Infura, Alchemy, or local Ganache)
 w3 = Web3(Web3.HTTPProvider(os.getenv("WEB3_PROVIDER_URL")))
 
 @app.route('/')
 def home():
     return "Welcome to the Web3 AI Security Core API! Use /scan or /scan/address."
 
-# ✅ /scan: AI-powered vulnerability + GPT explanation
+# ✅ AI-powered smart contract audit with GPT
 @app.route('/scan', methods=['POST'])
 def scan_contract():
     print("Received request at /scan")
@@ -26,15 +26,18 @@ def scan_contract():
     if not code:
         return jsonify({"error": "No code provided"}), 400
 
+    # Step 1: Basic static scan
     result = scan_contract_logic(code)
-    ai_feedback = explain_issues_with_gpt(result["issues"], code)
+
+    # Step 2: AI-enhanced GPT audit
+    ai_audit = explain_issues_with_gpt(result["issues"], code)
 
     return jsonify({
-        "issues": result["issues"],
-        "ai_audit": ai_feedback["explanations"]
+        "static_issues": result["issues"],      # From pattern matcher
+        "ai_audit": ai_audit                    # From GPT
     })
 
-# ✅ /scan/address: Pull on-chain bytecode by address
+# ✅ Pull on-chain contract bytecode by address
 @app.route('/scan/address', methods=['POST'])
 def scan_contract_address():
     print("Received request at /scan/address")
