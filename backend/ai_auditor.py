@@ -2,9 +2,20 @@ import openai
 import os
 import json
 
+# Load your OpenAI API key from .env
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def explain_issues_with_gpt(issues, code):
+    """
+    Use GPT to audit the provided Solidity code and return structured vulnerability and optimization data.
+    """
+    if not issues:
+        return {
+            "issues": [],
+            "trust_score": 95  # High trust if no issues statically detected
+        }
+
+    # Prompt for GPT auditing
     prompt = f"""
 You are a smart contract security auditor. Analyze the following Solidity code.
 
@@ -34,7 +45,7 @@ Code:
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4o",
+            model="gpt-4o",  # You can change to "gpt-4" or another model
             messages=[
                 {"role": "system", "content": "You are a Solidity smart contract security expert."},
                 {"role": "user", "content": prompt}
@@ -42,10 +53,20 @@ Code:
             temperature=0.3
         )
 
+        # Extract GPT response
         reply = response.choices[0].message['content']
+
         try:
-            return json.loads(reply)
+            parsed = json.loads(reply)
+            return parsed
         except json.JSONDecodeError:
-            return {"error": "Failed to parse JSON", "raw_response": reply}
+            return {
+                "error": "Failed to parse JSON from GPT.",
+                "raw_response": reply
+            }
+
     except Exception as e:
-        return {"error": f"AI error: {str(e)}"}
+        return {
+            "error": f"AI error: {str(e)}"
+        }
+
